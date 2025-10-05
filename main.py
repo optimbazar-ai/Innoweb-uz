@@ -9,6 +9,8 @@ from image_service import get_image_by_tags
 import logging
 from scheduler import run_job_once
 from security import get_api_key
+from marketing_service import get_marketing_message, get_all_marketing_keys
+from telegram_service import send_marketing_message_to_channel
 
 app = FastAPI(
     title="Innoweb.uz Backend",
@@ -97,6 +99,10 @@ class PostUpdate(BaseModel):
     seoDescription: Optional[str] = None
 
 
+class MarketingRequest(BaseModel):
+    message_key: str
+
+
 # Lifecycle Events
 @app.on_event("startup")
 async def startup():
@@ -140,6 +146,62 @@ async def trigger_cron_job(x_cron_secret: str = Header(...)):
     except Exception as e:
         logger.error(f"CRON job ishga tushirishda xatolik: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Vazifani bajarishda xatolik yuz berdi: {str(e)}")
+
+
+@app.post("/marketing/send", tags=["Marketing"])
+async def send_marketing_message(request: MarketingRequest, api_key: str = Depends(get_api_key)):
+    """
+    Marketing xabarini kalit so'z orqali Telegram kanalga yuboradi.
+    Faqat API key bilan himoyalangan.
+    """
+    try:
+        logger.info(f"Marketing xabari yuborish so'rovi: {request.message_key}")
+        
+        # Marketing xabarini olish
+        msg_data = get_marketing_message(request.message_key)
+        if not msg_data:
+            available_keys = get_all_marketing_keys()
+            raise HTTPException(
+                status_code=404, 
+                detail=f"'{request.message_key}' marketing xabari topilmadi. Mavjud kalitlar: {available_keys}"
+            )
+        
+        # Telegram kanalga yuborish
+        await send_marketing_message_to_channel(msg_data)
+        
+        logger.info(f"Marketing xabari '{request.message_key}' muvaffaqiyatli yuborildi")
+        return {
+            "status": "success", 
+            "message": f"'{request.message_key}' xabari Telegram kanalga yuborildi.",
+            "data": {
+                "message_key": request.message_key,
+                "text_length": len(msg_data["text"]),
+                "has_photo": bool(msg_data.get("photo"))
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Marketing xabarini yuborishda xatolik: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Marketing xabarini yuborishda xatolik: {str(e)}")
+
+
+@app.get("/marketing/messages", tags=["Marketing"])
+async def get_available_marketing_messages():
+    """Mavjud marketing xabarlari ro'yxatini qaytaradi"""
+    try:
+        available_keys = get_all_marketing_keys()
+        return {
+            "status": "success",
+            "data": {
+                "available_keys": available_keys,
+                "count": len(available_keys)
+            }
+        }
+    except Exception as e:
+        logger.error(f"Marketing xabarlari ro'yxatini olishda xatolik: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/posts", response_model=dict)

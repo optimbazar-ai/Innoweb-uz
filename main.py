@@ -1,12 +1,13 @@
-from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi import FastAPI, HTTPException, Depends, Request, Header
 from fastapi.responses import JSONResponse
+import os
 from pydantic import BaseModel
 from typing import List, Optional
 from database import db, connect_db, disconnect_db
 from ai_service import generate_blog_post, generate_seo_metadata
 from image_service import get_image_by_tags
 import logging
-from scheduler import start_scheduler, stop_scheduler
+from scheduler import run_job_once
 from security import get_api_key
 
 app = FastAPI(
@@ -99,18 +100,16 @@ class PostUpdate(BaseModel):
 # Lifecycle Events
 @app.on_event("startup")
 async def startup():
-    """Server ishga tushganda ma'lumotlar bazasiga ulanish va scheduler'ni ishga tushirish"""
+    """Server ishga tushganda ma'lumotlar bazasiga ulanish"""
     logger.info("Server ishga tushmoqda...")
     await connect_db()
-    start_scheduler()
     logger.info("Server muvaffaqiyatli ishga tushdi.")
 
 
 @app.on_event("shutdown")
 async def shutdown():
-    """Server o'chirilganda ma'lumotlar bazasidan uzilish va scheduler'ni to'xtatish"""
+    """Server o'chirilganda ma'lumotlar bazasidan uzilish"""
     logger.info("Server o'chirilmoqda...")
-    stop_scheduler()
     await disconnect_db()
     logger.info("Server muvaffaqiyatli o'chirildi.")
 
@@ -119,6 +118,28 @@ async def shutdown():
 @app.get("/")
 async def root():
     return {"message": "Innoweb.uz Backend ishga tushdi"}
+
+
+@app.post("/cron/trigger", tags=["Cron"])
+async def trigger_cron_job(x_cron_secret: str = Header(...)):
+    """
+    Tashqi CRON servisi uchun maxfiy endpoint.
+    Faqat to'g'ri maxfiy kalit bilan ishlaydi.
+    """
+    cron_secret = os.getenv("CRON_SECRET")
+    if not cron_secret or x_cron_secret != cron_secret:
+        logger.warning(f"CRON endpoint'ga ruxsatsiz kirish urinishi")
+        raise HTTPException(status_code=403, detail="Ruxsat yo'q!")
+
+    try:
+        logger.info("Tashqi CRON servisi orqali post yaratish boshlandi")
+        # scheduler.py dagi bir martalik post yaratish funksiyasini chaqiramiz
+        run_job_once()
+        logger.info("CRON job muvaffaqiyatli yakunlandi")
+        return {"status": "success", "message": "Avtomatik post yaratish vazifasi ishga tushirildi."}
+    except Exception as e:
+        logger.error(f"CRON job ishga tushirishda xatolik: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Vazifani bajarishda xatolik yuz berdi: {str(e)}")
 
 
 @app.post("/posts", response_model=dict)

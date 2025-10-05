@@ -3,42 +3,17 @@ services:
   - type: web
     name: innoweb-api
     env: python
-    plan: free # Bepul tarif
+    plan: free
     buildCommand: "uv pip install -r requirements.txt"
     startCommand: "uvicorn main:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: innoweb-db # Keyingi qadamda yaratiladigan DB nomi
-          property: connectionString
-      - key: GEMINI_API_KEY
         sync: false # Bularni Render'da qo'lda kiritamiz
-      - key: UNSPLASH_ACCESS_KEY
-        sync: false
-      - key: API_KEY
-        sync: false
-
-  # Har kunlik avtomatik post yaratish vazifasi
-  - type: cron
-    name: innoweb-cron
-    env: python
-    plan: free
-    schedule: "0 10 * * *" # Har kuni soat 10:00 da (UTC)
-    buildCommand: "uv pip install -r requirements.txt"
-    startCommand: "python -c 'from scheduler import run_job_once; run_job_once()'"
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: innoweb-db
-          property: connectionString
       - key: GEMINI_API_KEY
         sync: false
       - key: UNSPLASH_ACCESS_KEY
         sync: false
       - key: API_KEY
-        sync: false # CRON job'ga API key kerak bo'lmasligi mumkin, lekin bir xillik uchun qoldiramiz
-
-databases:
-  # NeonDB o'rniga Render'ning o'zining bepul PostgreSQL ma'lumotlar bazasi
-  - name: innoweb-db
-    plan: free
+        sync: false
+      - key: CRON_SECRET # Yangi maxfiy kalit
+        sync: false

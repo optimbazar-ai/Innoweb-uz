@@ -1,0 +1,25 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="256" fill="#2563eb"/>
+  
+  <!-- White Border -->
+  <circle cx="256" cy="256" r="240" fill="none" stroke="white" stroke-width="8"/>
+  
+  <!-- "IW" Text -->
+  <text 
+    x="50%" 
+    y="50%" 
+    font-family="Arial, sans-serif" 
+    font-size="180" 
+    font-weight="bold" 
+    fill="white" 
+    text-anchor="middle" 
+    dominant-baseline="middle">IW</text>
+  
+  <!-- Small Rocket Icon -->
+  <text 
+    x="50%" 
+    y="75%" 
+    font-size="40" 
+    text-anchor="middle">🚀</text>
+</svg>

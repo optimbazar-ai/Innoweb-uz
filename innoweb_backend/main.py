@@ -501,7 +501,7 @@ async def handle_contact_form(form_data: ContactForm):
     print("--- Yangi Xabar ---")
     print(f"Ism: {form_data.name}")
     print(f"Email: {form_data.email}")
-    print(f"Telefon: {form_data.phone if form_data.phone else 'Ko\\'rsatilmagan'}")
+    print(f"Telefon: {form_data.phone if form_data.phone else 'Ko\'rsatilmagan'}")
     print(f"Xabar: {form_data.message}")
     print("--------------------")
     return {"status": "Xabar muvaffaqiyatli qabul qilindi!"}

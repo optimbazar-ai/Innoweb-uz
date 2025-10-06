@@ -1,0 +1,39 @@
+// Prisma Schema for Innoweb.uz Backend
+
+generator client {
+  provider             = "prisma-client-py"
+  recursive_type_depth = 5
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id             Int      @id @default(autoincrement())
+  title          String
+  slug           String   @unique
+  content        String
+  imageUrl       String
+  tags           String[]
+  seoTitle       String
+  seoDescription String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Portfolio {
+  id            Int      @id @default(autoincrement())
+  title         String
+  slug          String   @unique
+  description   String
+  imageUrl      String
+  technologies  String[]
+  liveUrl       String?
+  githubUrl     String?
+  category      String
+  featured      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

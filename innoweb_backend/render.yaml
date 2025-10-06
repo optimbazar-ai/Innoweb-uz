@@ -1,0 +1,19 @@
+services:
+  # Asosiy veb-server
+  - type: web
+    name: innoweb-api
+    env: python
+    plan: free
+    buildCommand: "uv pip install -r requirements.txt"
+    startCommand: "uvicorn main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: DATABASE_URL
+        sync: false # Bularni Render'da qo'lda kiritamiz
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: UNSPLASH_ACCESS_KEY
+        sync: false
+      - key: API_KEY
+        sync: false
+      - key: CRON_SECRET # Yangi maxfiy kalit
+        sync: false

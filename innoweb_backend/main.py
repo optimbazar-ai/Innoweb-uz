@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import os
+import re
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from database import db, connect_db, disconnect_db
@@ -20,16 +21,22 @@ app = FastAPI(
 )
 
 # CORS sozlamalari - Frontend bilan bog'lanish uchun
+# Barcha Vercel preview URL'larni qo'llab-quvvatlash uchun
+
+# CORS origin checker
+def is_allowed_origin(origin: str) -> bool:
+    """Check if origin is allowed"""
+    allowed_patterns = [
+        r"^http://localhost:3000$",
+        r"^http://127\.0\.0\.1:3000$",
+        r"^https://innoweb-uz.*\.vercel\.app$",  # Barcha Vercel subdomain'lar
+        r"^https://.*-optimbazar-als-projects\.vercel\.app$",  # Preview URL'lar
+    ]
+    return any(re.match(pattern, origin) for pattern in allowed_patterns)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "https://innoweb-uz.vercel.app",
-        "https://innoweb-uz-9g3t.vercel.app",  # Production frontend (actual)
-        "https://innoweb-uz-9g3t-git-main-optimbazar-als-projects.vercel.app",
-        "https://innoweb-uz-9g3t-oitsrbacw-optimbazar-als-projects.vercel.app",
-    ],
+    allow_origin_regex=r"^https://.*\.vercel\.app$|^http://localhost:3000$|^http://127\.0\.0\.1:3000$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

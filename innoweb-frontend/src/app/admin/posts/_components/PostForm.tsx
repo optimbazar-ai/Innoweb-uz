@@ -8,6 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import type { Post } from "@/types";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const ADMIN_API_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY;
+
 type PostFormProps = {
   post?: Post | null;
 };
@@ -62,13 +65,22 @@ export function PostForm({ post }: PostFormProps) {
       seoDescription: formData.get("seoDescription"),
     };
 
-    const url = post ? `/api/admin/posts/${post.id}` : "/api/admin/posts";
+    if (!API_BASE_URL || !ADMIN_API_KEY) {
+      alert("Server sozlamalari topilmadi. Administratorga murojaat qiling.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    const url = post ? `${API_BASE_URL}/posts/${post.id}` : `${API_BASE_URL}/posts`;
     const method = post ? "PUT" : "POST";
 
     try {
       const response = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": ADMIN_API_KEY,
+        },
         body: JSON.stringify(data),
       });
 

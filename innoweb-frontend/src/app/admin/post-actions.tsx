@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const ADMIN_API_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY;
+
 export function PostActions({ postId }: { postId: string }) {
   const router = useRouter();
 
@@ -15,13 +18,18 @@ export function PostActions({ postId }: { postId: string }) {
       return;
     }
 
+    if (!API_BASE_URL || !ADMIN_API_KEY) {
+      window.alert("Server sozlamalari topilmadi. Administratorga murojaat qiling.");
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/admin/posts/delete`, {
-        method: "POST",
+      const response = await fetch(`${API_BASE_URL}/posts/${postId}`, {
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
+          "X-API-Key": ADMIN_API_KEY,
         },
-        body: JSON.stringify({ id: postId }),
       });
 
       if (response.ok) {

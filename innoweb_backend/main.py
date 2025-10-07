@@ -25,7 +25,10 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "https://innoweb-uz.vercel.app",  # Production frontend
+        "https://innoweb-uz.vercel.app",
+        "https://innoweb-uz-9g3t.vercel.app",  # Production frontend (actual)
+        "https://innoweb-uz-9g3t-git-main-optimbazar-als-projects.vercel.app",
+        "https://innoweb-uz-9g3t-oitsrbacw-optimbazar-als-projects.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
